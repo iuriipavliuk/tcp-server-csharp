@@ -9,10 +9,10 @@ namespace OneAppTcpCommunication
     public class OneAppTcpClient
     {
         private System.Net.Sockets.TcpClient _client;
-        private IPAddress _ipAddress;
-        private int _port;
+        private readonly IPAddress _ipAddress;
+        private readonly int _port;
         
-        public void Connect(IPAddress ipAddress, int port)
+        public OneAppTcpClient(IPAddress ipAddress, int port)
         {
             _ipAddress = ipAddress;
             _port = port;
