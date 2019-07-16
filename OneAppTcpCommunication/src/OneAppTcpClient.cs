@@ -20,7 +20,7 @@ namespace OneAppTcpCommunication
         
         public void SendRequest(TcpRequest request, Action<TcpResponse> callback)
         {
-            var requstJson = JsonConvert.SerializeObject(request);
+            var requestJson = JsonConvert.SerializeObject(request);
 
             void OnResponse(string json)
             {
@@ -28,7 +28,7 @@ namespace OneAppTcpCommunication
                 callback?.Invoke(response);
             }
             
-            SendRequest(requstJson, OnResponse);
+            SendRequest(requestJson, OnResponse);
         }
 
         public void SendRequest(string request, Action<string> callback)

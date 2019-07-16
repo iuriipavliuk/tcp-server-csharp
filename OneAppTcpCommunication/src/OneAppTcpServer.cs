@@ -19,7 +19,7 @@ namespace OneAppTcpCommunication
         {
             _port = port;
             _requestHandlers = new Dictionary<string, TcpRequestHandlerDelegate>();
-            _listener = new TcpListener(GetMyIpAddress(), port);
+            _listener = new TcpListener(CommunicationUtils.GetMyIpAddress(), port);
         }
 
         public void Start()
@@ -84,20 +84,6 @@ namespace OneAppTcpCommunication
                 throw new ArgumentException($"Route handler already exists: {route}");
             
             _requestHandlers.Add(route, tcpRequestHandler);
-        }
-        
-        private static IPAddress GetMyIpAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip;
-                }
-            }
-
-            return IPAddress.Any;
         }
     }
 }
