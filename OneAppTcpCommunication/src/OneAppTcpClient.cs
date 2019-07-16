@@ -44,7 +44,7 @@ namespace OneAppTcpCommunication
             SendRequest(requestJson, OnResponse);
         }
 
-        private void SendRequest(string request, Action<string> callback)
+        public void SendRequest(string request, Action<string> callback)
         {
             _client = new System.Net.Sockets.TcpClient();
             _client.Connect(_ipAddress, _port);
