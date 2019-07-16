@@ -17,31 +17,18 @@ namespace OneAppTcpCommunication
             _ipAddress = ipAddress;
             _port = port;
         }
-            
-        public void RegisterPod(Action<TcpResponse> callback)
+        
+        public void SendRequest(TcpRequest request, Action<TcpResponse> callback)
         {
-            var data = new RegisterPodRequest()
-            {
-                id = "AX101",
-                p2pUrl = $"{CommunicationUtils.GetMyIpAddress()}:{4001}",
-                location = new double[] {1, 1}// UserAppState.Instance.CurrentLocation.Coordinates.ToArray()
-            };
-
-            var request = new TcpRequest()
-            {
-                url = "register-pod",
-                payload = Newtonsoft.Json.JsonConvert.SerializeObject(data)
-            };
-            
-            var requestJson = JsonConvert.SerializeObject(request);
+            var requstJson = JsonConvert.SerializeObject(request);
 
             void OnResponse(string json)
             {
-                var response = Newtonsoft.Json.JsonConvert.DeserializeObject<TcpResponse>(json);
+                var response = JsonConvert.DeserializeObject<TcpResponse>(json);
                 callback?.Invoke(response);
             }
-
-            SendRequest(requestJson, OnResponse);
+            
+            SendRequest(requstJson, OnResponse);
         }
 
         public void SendRequest(string request, Action<string> callback)
