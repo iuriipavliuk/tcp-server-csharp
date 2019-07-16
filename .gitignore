@@ -1,0 +1,16 @@
+.idea/.idea.TcpServer
+TcpServer.sln
+TcpServer.csproj
+TcpServer/obj/
+TcpServer/Properties
+TcpServer/bin/
+TcpCommunication/bin/
+TcpCommunication/obj/
+TcpCommunication.csproj
+TcpCommunication/Properties
+packages.config
+OneAppTcpCommunication/bin/
+OneAppTcpCommunication/obj/
+OneAppTcpCommunication/Properties
+packages/
+OneAppTcpCommunication.csproj
