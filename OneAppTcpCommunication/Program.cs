@@ -27,13 +27,13 @@ namespace OneAppTcpCommunication
       if (_registeredPods == null || _registeredPods.Count == 0)
         return new TcpResponse()
         {
-          code = 2, 
+          code = (int) FmsStatusCode.NoPodAvailable, 
           payload = "No pod available"
         };
 
       return new TcpResponse()
       {
-        code = 0,
+        code = (int) FmsStatusCode.Ok,
         payload = string.Format("{" + "'p2pUrl':{0}" + "}", _registeredPods.First(item => string.IsNullOrEmpty(item.Key)).Value.p2pUrl)
       };
     }
@@ -51,7 +51,7 @@ namespace OneAppTcpCommunication
       {
         return new TcpResponse()
         {
-          code = 1,
+          code = (int) FmsStatusCode.PodIsAlreadyRegistered,
           payload = "Pod is already registered"
         };
       }
@@ -60,7 +60,7 @@ namespace OneAppTcpCommunication
         
       return new TcpResponse()
       {
-        code = 0,
+        code = (int) FmsStatusCode.Ok,
         payload = "Pod is registered"
       };
     }
