@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace OneAppTcpCommunication
@@ -28,10 +29,12 @@ namespace OneAppTcpCommunication
                 callback?.Invoke(response);
             }
             
-            SendRequest(requestJson, OnResponse);
+            var task = SendRequest(requestJson, OnResponse);
+            task.Start();
+            task.Wait();
         }
 
-        public void SendRequest(string request, Action<string> callback)
+        private async Task SendRequest(string request, Action<string> callback)
         {
             _client = new System.Net.Sockets.TcpClient();
             _client.Connect(_ipAddress, _port);
@@ -43,14 +46,14 @@ namespace OneAppTcpCommunication
             Array.Copy(requestData, 0, buffer, size.Length, requestData.Length);
             
             var stream = _client.GetStream();
-            stream.Write(buffer, 0, buffer.Length );
+            await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             
             size = new byte[4];
-            stream.Read(size, 0, size.Length);
-            
+            await stream.ReadAsync(size, 0, size.Length).ConfigureAwait(false);
+
             var responseData = new byte[BitConverter.ToInt32(size, 0)];
-            stream.Read(responseData, 0, responseData.Length);
-            
+            await stream.ReadAsync(responseData, 0, responseData.Length).ConfigureAwait(false);
+
             stream.Close();
             
             var responseJson = System.Text.Encoding.UTF8.GetString(responseData, 0, responseData.Length);
