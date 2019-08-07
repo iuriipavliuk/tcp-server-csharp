@@ -14,3 +14,4 @@ OneAppTcpCommunication/obj/
 OneAppTcpCommunication/Properties
 packages/
 OneAppTcpCommunication.csproj
+*.meta
