@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace OneAppTcpCommunication
 {
-	public class TcpServerProgram
+    public class TcpServerProgram
 	{
 		private static Dictionary<string, RegisterPodRequest> _registeredPods;
 		
@@ -18,8 +18,8 @@ namespace OneAppTcpCommunication
       
 			server.Start();
 		}
-		
-		private static TcpResponse RequestPodRequestHandler(TcpRequest request)
+
+        private static TcpResponse RequestPodRequestHandler(TcpRequest request)
 		{
 			Console.WriteLine($"Request: {request.url}, {request.payload}");
 
