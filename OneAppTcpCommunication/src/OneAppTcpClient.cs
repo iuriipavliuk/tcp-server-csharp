@@ -30,20 +30,21 @@ namespace OneAppTcpCommunication
             }
             
             var task = SendRequest(requestJson, OnResponse);
-            task.Start();
-            task.Wait();
         }
 
         private async Task SendRequest(string request, Action<string> callback)
         {
             _client = new System.Net.Sockets.TcpClient();
             _client.Connect(_ipAddress, _port);
-                    
+
+            var startOffset = 2;
             var requestData = Encoding.UTF8.GetBytes(request);
             var size = BitConverter.GetBytes(requestData.Length);
-            var buffer = new byte[requestData.Length + size.Length];
-            Array.Copy(size, 0, buffer, 0, size.Length);
-            Array.Copy(requestData, 0, buffer, size.Length, requestData.Length);
+            var header = new byte[startOffset];
+            var buffer = new byte[requestData.Length + size.Length + header.Length];
+            Array.Copy(header, 0, buffer, 0, header.Length);
+            Array.Copy(size, 0, buffer, header.Length, size.Length);
+            Array.Copy(requestData, 0, buffer, size.Length + header.Length, requestData.Length);
             
             var stream = _client.GetStream();
             await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);

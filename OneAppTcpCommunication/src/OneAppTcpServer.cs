@@ -4,13 +4,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace OneAppTcpCommunication
 {
     public class OneAppTcpServer
     {
-        private int _port;
+        private readonly int _port;
+        private readonly IPAddress _ipAddress;
         private bool _isRunning;
 
         private readonly TcpListener _listener;
@@ -18,14 +20,19 @@ namespace OneAppTcpCommunication
         public OneAppTcpServer(int port)
         {
             _port = port;
+            _ipAddress = CommunicationUtils.GetMyIpAddress();
+
             _requestHandlers = new Dictionary<string, TcpRequestHandlerDelegate>();
-            _listener = new TcpListener(CommunicationUtils.GetMyIpAddress(), port);
+
+            _listener = new TcpListener(_ipAddress, _port);
         }
 
         public void Start()
         {
             var serverThread = new Thread(Run);
             serverThread.Start();
+
+            Console.WriteLine($"Start server on {_ipAddress}:{_port}");
         }
 
         private void Run()
@@ -40,7 +47,9 @@ namespace OneAppTcpCommunication
                 
                 Console.WriteLine("Client connected");
                 
-                HandleClient(client);
+                var task = HandleClient(client);
+                task.Wait();
+
                 client.Close();
             }
 
@@ -48,35 +57,56 @@ namespace OneAppTcpCommunication
             _listener.Stop();
         }
         
-        private void HandleClient(TcpClient client)
+        private async Task HandleClient(TcpClient client)
         {
+            TcpResponse response;
+            byte[] buffer;
+            string msg;
+
             var stream = client.GetStream();
 
-            var size = new byte[4];
-            stream.Read(size, 0, size.Length);
-            var buffer = new byte[BitConverter.ToInt32(size, 0)];
-            stream.Read(buffer, 0, buffer.Length);            
-            var msg = Encoding.UTF8.GetString(buffer);
-            
-            Console.WriteLine($"Request: {msg}");
+            var header = new byte[2];
+            await stream.ReadAsync(header, 0, header.Length);
 
-            var request = JsonConvert.DeserializeObject<TcpRequest>(msg);
-            
-            var response = _requestHandlers.ContainsKey(request.url)
-                ? _requestHandlers[request.url].Invoke(request)
-                : new TcpResponse() {code = 404, payload = $"Unknown request url: {request.url}"};
+            if(BitConverter.ToInt16(header, 0) == 0)
+            {
+                var sizeBuffer = new byte[4];
+                await stream.ReadAsync(sizeBuffer, 0, sizeBuffer.Length);
+
+                var size = BitConverter.ToInt32(sizeBuffer, 0);
+
+                buffer = new byte[size];
+                await stream.ReadAsync(buffer, 0, buffer.Length);
+
+                msg = Encoding.UTF8.GetString(buffer);
+
+                Console.WriteLine($"Request: {msg}");
+
+                var request = JsonConvert.DeserializeObject<TcpRequest>(msg);
+
+                response = _requestHandlers.ContainsKey(request.url)
+                    ? _requestHandlers[request.url].Invoke(request)
+                    : new TcpResponse() { code = 404, payload = $"Unknown request url: {request.url}" };
+            }
+            else
+            { 
+                buffer = new byte[1024];
+                await stream.ReadAsync(buffer, 0, buffer.Length);
+                
+                msg = Encoding.UTF8.GetString(buffer);
+                Console.WriteLine($"Request: {msg}");
+                
+                response = new TcpResponse() { code = 404, payload = $"Unknown request: {msg}" };
+            }
             
             var responseData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-            size = BitConverter.GetBytes(responseData.Length);
-            var result = new byte[responseData.Length + 4];
-            Array.Copy(size, 0, result, 0, size.Length);
-            Array.Copy(responseData, 0, result, size.Length, responseData.Length);
-            
-            stream.Write(result, 0, result.Length);
+            await stream.WriteAsync(responseData, 0, responseData.Length);
+
             stream.Close();
         }
 
         private readonly Dictionary<string, TcpRequestHandlerDelegate> _requestHandlers;
+
         public delegate TcpResponse TcpRequestHandlerDelegate(TcpRequest request);
         public void AddRoute(string route, TcpRequestHandlerDelegate tcpRequestHandler)
         {
