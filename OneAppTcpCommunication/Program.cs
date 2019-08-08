@@ -11,8 +11,8 @@ namespace OneAppTcpCommunication
         public static void Main(string[] args)
         {
             TcpServerProgram.Start();
-            Task.Delay(1000).Wait();
-            TcpClientProgram.Start();
+            //Task.Delay(1000).Wait();
+            //TcpClientProgram.Start();
         }
     }
 }
